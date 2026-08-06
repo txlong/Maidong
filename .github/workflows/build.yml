@@ -16,7 +16,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm ci
+      - run: npm install
       - run: npm run dist -- --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -32,7 +32,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm ci
+      - run: npm install
       - run: npm run dist -- --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
