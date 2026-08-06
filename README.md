@@ -56,3 +56,34 @@ webview-app/
 4. 已安装旧版的用户启动后会自动收到更新提示。
 
 > CI 使用仓库默认 `secrets.GITHUB_TOKEN`，无需额外配置。
+
+## 代码签名（去除系统拦截）
+
+未签名的应用在 macOS 会报“已损坏，无法打开”，在 Windows 会触发 SmartScreen。本项目已在 CI 中预留签名/公证流程：**填好下面的 GitHub Secrets 后，下次打 tag 即自动签名 + 公证**，不填则照常构建未签名包。
+
+### 需要在仓库 Settings → Secrets and variables → Actions 中创建的密钥
+
+**macOS（Apple Developer ID + 公证）**
+| Secret | 内容 |
+|--------|------|
+| `MAC_CERTIFICATE_BASE64` | “Developer ID Application” 证书导出为 `.p12` 后的 base64（`base64 -i cert.p12`） |
+| `MAC_CERTIFICATE_PASSWORD` | 该 `.p12` 的导出密码 |
+| `APPLE_ID` | 你的 Apple ID 邮箱 |
+| `APPLE_APP_SPECIFIC_PASSWORD` | Apple 专用密码（appleid.apple.com → 登录与安全 → App 专用密码） |
+| `APPLE_TEAM_ID` | 10 位 Team ID |
+
+**Windows（Authenticode 代码签名）**
+| Secret | 内容 |
+|--------|------|
+| `WIN_CERTIFICATE_BASE64` | Windows 代码签名证书 `.pfx` 的 base64（`base64 -i cert.pfx`） |
+| `WIN_CERTIFICATE_PASSWORD` | 该 `.pfx` 的密码 |
+
+### 本地导出证书为 base64
+```bash
+# macOS
+base64 -i "Developer ID Application.p12" | pbcopy   # 结果粘到 MAC_CERTIFICATE_BASE64
+# Windows
+base64 -i "codesign.pfx" | clip                      # 结果粘到 WIN_CERTIFICATE_BASE64
+```
+
+> 说明：Windows 全新代码签名证书初期 SmartScreen 可能仍有一次警告，待证书信誉累积（下载量上来）后自动消失，属正常现象。

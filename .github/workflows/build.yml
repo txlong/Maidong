@@ -17,6 +17,30 @@ jobs:
         with:
           node-version: 22
       - run: npm install
+      - name: 准备 macOS 签名与公证凭证
+        run: |
+          if [ -n "$CERT_BASE64" ]; then
+            echo "$CERT_BASE64" | base64 -d > mac-cert.p12
+            echo "CSC_LINK=mac-cert.p12" >> "$GITHUB_ENV"
+            echo "CSC_KEY_PASSWORD=$CERT_PASSWORD" >> "$GITHUB_ENV"
+            echo "[sign] macOS 证书已就绪"
+          else
+            echo "[sign] 未提供 macOS 证书，构建未签名版本"
+          fi
+          if [ -n "$APPLE_ID" ]; then
+            echo "APPLE_ID=$APPLE_ID" >> "$GITHUB_ENV"
+            echo "APPLE_APP_SPECIFIC_PASSWORD=$APPLE_PASSWORD" >> "$GITHUB_ENV"
+            echo "APPLE_TEAM_ID=$APPLE_TEAM" >> "$GITHUB_ENV"
+            echo "[sign] Apple 公证凭证已就绪"
+          else
+            echo "[sign] 未提供 Apple 公证凭证，跳过公证"
+          fi
+        env:
+          CERT_BASE64: ${{ secrets.MAC_CERTIFICATE_BASE64 }}
+          CERT_PASSWORD: ${{ secrets.MAC_CERTIFICATE_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM: ${{ secrets.APPLE_TEAM_ID }}
       - run: npm run dist -- --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -33,6 +57,20 @@ jobs:
         with:
           node-version: 22
       - run: npm install
+      - name: 准备 Windows 签名凭证
+        shell: bash
+        run: |
+          if [ -n "$CERT_BASE64" ]; then
+            echo "$CERT_BASE64" | base64 -d > win-cert.pfx
+            echo "CSC_LINK=win-cert.pfx" >> "$GITHUB_ENV"
+            echo "CSC_KEY_PASSWORD=$CERT_PASSWORD" >> "$GITHUB_ENV"
+            echo "[sign] Windows 证书已就绪"
+          else
+            echo "[sign] 未提供 Windows 证书，构建未签名版本"
+          fi
+        env:
+          CERT_BASE64: ${{ secrets.WIN_CERTIFICATE_BASE64 }}
+          CERT_PASSWORD: ${{ secrets.WIN_CERTIFICATE_PASSWORD }}
       - run: npm run dist -- --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

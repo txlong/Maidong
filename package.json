@@ -14,6 +14,7 @@
     "url": "https://github.com/txlong/Maidong.git"
   },
   "devDependencies": {
+    "@electron/notarize": "^2.5.0",
     "electron": "^43.3.0",
     "electron-builder": "^26.15.7",
     "electron-updater": "^6.3.9"
@@ -30,6 +31,7 @@
       "assets/**"
     ],
     "icon": "assets/icon.png",
+    "afterSign": "scripts/notarize.js",
     "publish": [
       {
         "provider": "github",
@@ -38,10 +40,14 @@
       }
     ],
     "mac": {
-      "target": ["dmg"]
+      "target": ["dmg"],
+      "category": "public.app-category.business",
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist"
     },
     "win": {
-      "target": ["nsis"]
+      "target": ["nsis"],
+      "signingHashAlgorithms": ["sha256"]
     }
   }
 }
