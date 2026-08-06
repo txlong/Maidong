@@ -9,6 +9,10 @@
   },
   "author": "麦冬科技",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/txlong/Maidong.git"
+  },
   "devDependencies": {
     "electron": "^43.3.0",
     "electron-builder": "^26.15.7",
@@ -28,7 +32,9 @@
     "icon": "assets/icon.png",
     "publish": [
       {
-        "provider": "github"
+        "provider": "github",
+        "owner": "txlong",
+        "repo": "Maidong"
       }
     ],
     "mac": {
