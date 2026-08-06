@@ -9,7 +9,26 @@ permissions:
   contents: write
 
 jobs:
+  # 1) 先创建（或复用）唯一的 GitHub Release（草稿状态）
+  #    避免 mac / win 两个并行 job 各自去创建 Release 造成重复
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: 创建或复用 GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG 已存在，复用（不重复创建）"
+          else
+            gh release create "$TAG" --draft --title "$TAG" --generate-notes
+            echo "已创建草稿 Release $TAG"
+          fi
+
   mac:
+    needs: release
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v5
@@ -50,6 +69,7 @@ jobs:
           path: dist/*.dmg
 
   win:
+    needs: release
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v5
@@ -78,3 +98,13 @@ jobs:
         with:
           name: win-exe
           path: dist/*.exe
+
+  # 2) mac / win 都上传完成后，再把草稿 Release 转为正式发布
+  publish:
+    needs: [mac, win]
+    runs-on: ubuntu-latest
+    steps:
+      - name: 发布 Release（取消草稿状态）
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release edit "${GITHUB_REF_NAME}" --draft=false

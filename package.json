@@ -47,8 +47,7 @@
       "entitlementsInherit": "build/entitlements.mac.plist"
     },
     "win": {
-      "target": ["nsis"],
-      "signingHashAlgorithms": ["sha256"]
+      "target": ["nsis"]
     }
   }
 }
