@@ -1,0 +1,33 @@
+{
+  "name": "maidong-pc",
+  "version": "1.0.0",
+  "description": "打开即加载指定网址的跨平台桌面壳应用",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^43.3.0",
+    "electron-builder": "^26.15.7"
+  },
+  "build": {
+    "appId": "com.yourcompany.webviewapp",
+    "productName": "WebViewApp",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js"
+    ],
+    "mac": {
+      "target": ["dmg"]
+    },
+    "win": {
+      "target": ["nsis"]
+    }
+  }
+}
