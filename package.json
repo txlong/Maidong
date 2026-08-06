@@ -1,5 +1,5 @@
 {
-  "name": "maidong-app",
+  "name": "maidong",
   "version": "1.0.0",
   "description": "麦冬云诊所 - 专业的中医诊所管理系统",
   "main": "main.js",
@@ -7,7 +7,7 @@
     "start": "electron .",
     "dist": "electron-builder"
   },
-  "author": "",
+  "author": "麦冬科技",
   "license": "MIT",
   "devDependencies": {
     "electron": "^43.3.0",
@@ -15,7 +15,7 @@
   },
   "build": {
     "appId": "com.maidong.app",
-    "productName": "麦冬云诊所",
+    "productName": "Maidong",
     "directories": {
       "output": "dist"
     },
