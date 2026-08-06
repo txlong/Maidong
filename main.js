@@ -14,14 +14,6 @@ const TARGET_URL = 'https://pc.mdzjia.com'
 // 窗口标题（固定，不被网页标题覆盖）
 const APP_TITLE = '麦冬云诊所'
 
-// 允许访问的域名白名单
-const ALLOWED_HOSTS = ['mdzjia.com', 'pc.mdzjia.com', 'www.mdzjia.com']
-function isAllowedHost(url) {
-  try {
-    const host = new URL(url).hostname.toLowerCase()
-    return ALLOWED_HOSTS.includes(host) || host.endsWith('.mdzjia.com')
-  } catch { return false }
-}
 // ============================================================
 
 let win = null
@@ -52,11 +44,6 @@ function createWindow() {
     win.show()
   })
 
-  // 锁定域名：只允许访问白名单域名，站外跳转改用系统浏览器
-  win.webContents.on('will-navigate', (event, url) => {
-    if (!isAllowedHost(url)) { event.preventDefault(); shell.openExternal(url) }
-  })
-
   // 固定窗口标题
   win.on('page-title-updated', (event) => { event.preventDefault(); win.setTitle(APP_TITLE) })
 
@@ -64,9 +51,6 @@ function createWindow() {
   win.webContents.on('did-fail-load', (_e, code, desc) => {
     dialog.showErrorBox('加载失败', `无法打开 ${TARGET_URL}\n错误：${desc} (${code})`)
   })
-
-  // 外链 / 新窗口用系统默认浏览器打开
-  win.webContents.setWindowOpenHandler(({ url }) => { shell.openExternal(url); return { action: 'deny' } })
 
   // 关闭窗口最小化到托盘，不退出
   win.on('close', (event) => {
