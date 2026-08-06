@@ -28,6 +28,7 @@
     "files": [
       "main.js",
       "preload.js",
+      "i18n.js",
       "assets/**"
     ],
     "icon": "assets/icon.png",
