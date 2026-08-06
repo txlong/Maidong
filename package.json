@@ -11,7 +11,8 @@
   "license": "MIT",
   "devDependencies": {
     "electron": "^43.3.0",
-    "electron-builder": "^26.15.7"
+    "electron-builder": "^26.15.7",
+    "electron-updater": "^6.3.9"
   },
   "build": {
     "appId": "com.maidong.app",
@@ -21,7 +22,14 @@
     },
     "files": [
       "main.js",
-      "preload.js"
+      "preload.js",
+      "assets/**"
+    ],
+    "icon": "assets/icon.png",
+    "publish": [
+      {
+        "provider": "github"
+      }
     ],
     "mac": {
       "target": ["dmg"]
