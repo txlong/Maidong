@@ -21,7 +21,8 @@
   },
   "build": {
     "appId": "com.maidong.app",
-    "productName": "Maidong",
+    "productName": "麦冬云诊所",
+    "executableName": "Maidong",
     "artifactName": "maidong-desktop-${version}-${os}.${ext}",
     "directories": {
       "output": "dist"
@@ -55,8 +56,8 @@
       "perMachine": false,
       "allowElevation": true,
       "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
-      "createStartMenuShortcut": true,
+      "createDesktopShortcut": false,
+      "createStartMenuShortcut": false,
       "include": "build/installer.nsh"
     }
   }
