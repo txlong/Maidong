@@ -1,13 +1,13 @@
 {
   "name": "maidong",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "麦冬云诊所 - 专业的中医诊所管理系统",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "dist": "electron-builder"
   },
-  "author": "麦冬科技",
+  "author": "河南麦冬医疗科技有限公司",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -22,6 +22,7 @@
   "build": {
     "appId": "com.maidong.app",
     "productName": "Maidong",
+    "artifactName": "maidong-desktop-${version}-${os}.${ext}",
     "directories": {
       "output": "dist"
     },
@@ -47,7 +48,14 @@
       "entitlementsInherit": "build/entitlements.mac.plist"
     },
     "win": {
-      "target": ["nsis"]
+      "target": ["nsis"],
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "include": "build/installer.nsh"
     }
   }
 }

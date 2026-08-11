@@ -14,8 +14,8 @@ npm start
 ```bash
 npm run dist
 ```
-- Windows：生成 `dist/Maidong Setup.exe`（NSIS 安装包）
-- macOS：生成 `dist/Maidong-*.dmg`
+- Windows：生成 `dist/maidong-desktop-1.x.x-win.exe`（NSIS 安装包）
+- macOS：生成 `dist/maidong-desktop-1.x.x-mac.dmg`
 
 > 说明：在 macOS 上打 Windows 包需要额外配置 wine；建议在对应系统上分别打包，或接 CI（GitHub Actions）自动出双端包（见下文）。
 
@@ -52,7 +52,7 @@ webview-app/
 接入步骤：
 1. 把项目推到 GitHub 仓库。
 2. 打标签并推送：`git tag v1.0.0 && git push origin v1.0.0`。
-3. Actions 自动构建，在 Release 中产出 `Maidong-*.dmg` 与 `Maidong Setup.exe`。
+3. Actions 自动构建，在 Release 中产出 `maidong-desktop-1.0.0-mac.dmg` 与 `maidong-desktop-1.0.0-win.exe`。
 4. 已安装旧版的用户启动后会自动收到更新提示。
 
 > CI 使用仓库默认 `secrets.GITHUB_TOKEN`，无需额外配置。
