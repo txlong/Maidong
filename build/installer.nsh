@@ -7,8 +7,12 @@
 
 !macro customInstall
   CreateDirectory "$SMPROGRAMS\\${PRODUCT_NAME}"
+  CreateShortCut "$DESKTOP\\麦冬云诊所.lnk" "$INSTDIR\\${PRODUCT_NAME}.exe" "" "$INSTDIR\\${PRODUCT_NAME}.ico"
+  CreateShortCut "$SMPROGRAMS\\${PRODUCT_NAME}\\麦冬云诊所.lnk" "$INSTDIR\\${PRODUCT_NAME}.exe" "" "$INSTDIR\\${PRODUCT_NAME}.ico"
 !macroend
 
 !macro customUnInstall
-  Delete "$SMPROGRAMS\\${PRODUCT_NAME}\\${PRODUCT_NAME}.lnk"
+  Delete "$DESKTOP\\麦冬云诊所.lnk"
+  Delete "$SMPROGRAMS\\${PRODUCT_NAME}\\麦冬云诊所.lnk"
+  RMDir "$SMPROGRAMS\\${PRODUCT_NAME}"
 !macroend
