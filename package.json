@@ -1,6 +1,6 @@
 {
   "name": "maidong",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "麦冬云诊所 - 专业的中医诊所管理系统",
   "main": "main.js",
   "scripts": {
@@ -15,7 +15,7 @@
   },
   "devDependencies": {
     "@electron/notarize": "^3.1.1",
-    "electron": "^43.3.0",
+    "electron": "22.3.27",
     "electron-builder": "^26.15.7",
     "electron-updater": "^6.8.9"
   },
