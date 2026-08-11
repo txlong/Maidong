@@ -58,6 +58,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": false,
       "createStartMenuShortcut": false,
+      "installerLanguages": ["SimpChinese"],
       "include": "build/installer.nsh"
     }
   }

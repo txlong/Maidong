@@ -3,6 +3,9 @@ const path = require('path')
 const fs = require('fs')
 const { t } = require('./i18n')
 
+// 强制应用语言为简体中文（解决打包后默认显示英语的问题）
+app.commandLine.appendSwitch('lang', 'zh-CN')
+
 let autoUpdater = null
 try { autoUpdater = require('electron-updater').autoUpdater } catch (e) { autoUpdater = null }
 

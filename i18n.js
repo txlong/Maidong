@@ -91,7 +91,8 @@ const dict = { zh, en }
 
 function currentLocale() {
   const l = (app && typeof app.getLocale === 'function') ? app.getLocale() : 'zh'
-  return (l || 'zh').toLowerCase().startsWith('zh') ? 'zh' : 'en'
+  // 本应用以中文为主，仅当系统语言明确为英文时才用英文，其余一律回退到中文
+  return (l || 'zh').toLowerCase().startsWith('en') ? 'en' : 'zh'
 }
 
 // t('key') 或 t('key', { url, desc, code }) 做占位符替换
