@@ -48,7 +48,9 @@
       "entitlementsInherit": "build/entitlements.mac.plist"
     },
     "win": {
-      "target": ["nsis"],
+      "target": ["nsis"]
+    },
+    "nsis": {
       "oneClick": false,
       "perMachine": false,
       "allowElevation": true,
