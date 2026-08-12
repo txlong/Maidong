@@ -26,6 +26,48 @@ const DEV_TOOLS_BLOCKED = true
 let win = null
 let tray = null
 
+// ============================================================
+// 登录态持久化：网页下发的 session cookie 自动转成持久 cookie
+// 解决 Windows 上完全退出应用后每次都要重新登录的问题。
+// 原因：无过期时间的 session cookie 仅在 Chromium"干净退出"时才刷盘，
+//       Windows 上常见退出/杀进程场景会丢失；Mac 测试时通常只是
+//       隐藏窗口（hide 到托盘），进程从未退出，所以登录态一直在。
+// ============================================================
+const COOKIE_PERSIST_DAYS = 30 // session cookie 转持久后的有效天数
+
+function setupCookiePersistence() {
+  const { session } = require('electron')
+  const cookies = session.defaultSession.cookies
+
+  console.log('[session] userData 目录:', app.getPath('userData'))
+
+  cookies.on('changed', (_event, cookie, _cause, removed) => {
+    if (removed || !cookie.session) return
+    if (cookie.expirationDate) return // 已是持久 cookie，无需处理
+
+    const expirationDate = Math.floor(Date.now() / 1000) + COOKIE_PERSIST_DAYS * 86400
+    const host = (cookie.domain || '').replace(/^\./, '')
+    const url = `${cookie.secure ? 'https' : 'http'}://${host}${cookie.path || '/'}`
+
+    const opts = {
+      url,
+      name: cookie.name,
+      value: cookie.value,
+      path: cookie.path,
+      secure: cookie.secure,
+      httpOnly: cookie.httpOnly,
+      sameSite: cookie.sameSite,
+      expirationDate
+    }
+    // hostOnly cookie 不能带 domain（否则会变成 domain cookie，扩大作用域）
+    if (!cookie.hostOnly && cookie.domain) opts.domain = cookie.domain
+
+    cookies.set(opts, (err) => {
+      if (err) console.warn(`[cookie] 持久化失败: ${cookie.name} ->`, err.message)
+    })
+  })
+}
+
 function createWindow() {
   win = new BrowserWindow({
     width: 1280,
@@ -215,6 +257,9 @@ app.on('web-contents-created', (event, contents) => {
 })
 
 app.whenReady().then(() => {
+  // 先注册 cookie 持久化，再创建窗口，确保登录 cookie 第一时间被接管
+  setupCookiePersistence()
+
   // 设置国际化的顶部应用菜单（替换 macOS 默认英文菜单；视图菜单不含开发者工具）
   Menu.setApplicationMenu(buildAppMenu())
 
