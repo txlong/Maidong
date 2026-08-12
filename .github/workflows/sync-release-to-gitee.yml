@@ -30,7 +30,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
           GITEE_OWNER: txlong
-          GITEE_REPO: MaidongDestop
+          GITEE_REPO: maidong-destop
           EVENT_TAG: ${{ github.event.release.tag_name }}
           MANUAL_TAG: ${{ github.event.inputs.tag }}
         run: bash scripts/sync-release-to-gitee.sh
