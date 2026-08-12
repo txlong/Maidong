@@ -1,6 +1,5 @@
-const { app, BrowserWindow, shell, dialog, Tray, Menu, clipboard } = require('electron')
+const { app, BrowserWindow, shell, dialog, Menu, clipboard } = require('electron')
 const path = require('path')
-const fs = require('fs')
 const { t } = require('./i18n')
 
 // 强制应用语言为简体中文（解决打包后默认显示英语的问题）
@@ -23,8 +22,21 @@ const DEV_TOOLS_BLOCKED = true
 
 // ============================================================
 
+// 单实例锁：防止旧进程未退出时（或异常残留）再双击快捷方式启动第二个进程，
+// 导致新进程读不到旧进程内存中的登录 cookie 而需要重新登录
+const gotTheLock = app.requestSingleInstanceLock()
+if (!gotTheLock) {
+  app.quit()
+} else {
+  app.on('second-instance', () => {
+    if (win) {
+      if (win.isMinimized()) win.restore()
+      win.focus()
+    }
+  })
+}
+
 let win = null
-let tray = null
 
 // ============================================================
 // 登录态持久化：网页下发的 session cookie 自动转成持久 cookie
@@ -100,30 +112,6 @@ function createWindow() {
   win.webContents.on('did-fail-load', (_e, code, desc) => {
     dialog.showErrorBox(t('loadFailTitle'), t('loadFailMsg', { url: TARGET_URL, desc, code }))
   })
-
-  // 关闭窗口最小化到托盘，不退出
-  win.on('close', (event) => {
-    if (!app.isQuiting) {
-      event.preventDefault()
-      win.hide()
-    }
-  })
-}
-
-function createTray() {
-  const iconPath = path.join(__dirname, 'assets', 'icon.png')
-  if (!fs.existsSync(iconPath)) {
-    console.warn('[tray] 未找到 assets/icon.png，跳过托盘')
-    return
-  }
-  tray = new Tray(iconPath)
-  tray.setToolTip(APP_TITLE)
-  tray.setContextMenu(Menu.buildFromTemplate([
-    { label: t('showWindow'), click: () => win && win.show() },
-    { type: 'separator' },
-    { label: t('exit'), click: () => { app.isQuiting = true; app.quit() } }
-  ]))
-  tray.on('click', () => win && win.show())
 }
 
 function setupAutoUpdate() {
@@ -264,7 +252,6 @@ app.whenReady().then(() => {
   Menu.setApplicationMenu(buildAppMenu())
 
   createWindow()
-  createTray()
   setupAutoUpdate()
 })
 
@@ -273,6 +260,7 @@ app.on('activate', () => {
   else if (win) win.show()
 })
 
+// 所有窗口关闭后直接退出应用（Windows/macOS 一致），不再驻留后台
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') app.quit()
+  app.quit()
 })
