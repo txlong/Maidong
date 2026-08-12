@@ -52,10 +52,7 @@
       "target": ["nsis"]
     },
     "nsis": {
-      "oneClick": false,
-      "perMachine": false,
       "allowElevation": true,
-      "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": false,
       "createStartMenuShortcut": false,
       "installerLanguages": ["zh_CN"],

@@ -57,6 +57,19 @@ webview-app/
 
 > CI 使用仓库默认 `secrets.GITHUB_TOKEN`，无需额外配置。
 
+```json
+ "nsis": {
+    "oneClick": false, // 启用“一键安装”模式
+    "allowToChangeInstallationDirectory": true, // 提供目录选择界面
+    "perMachine": false, // 安装是否为“本机所有用户”安装（
+    "allowElevation": true, // 是否允许安装程序请求管理员权限
+    "createDesktopShortcut": false,
+    "createStartMenuShortcut": false,
+    "installerLanguages": ["zh_CN"],
+    "include": "build/installer.nsh"
+}
+```
+
 ## 代码签名（去除系统拦截）
 
 未签名的应用在 macOS 会报“已损坏，无法打开”，在 Windows 会触发 SmartScreen。本项目已在 CI 中预留签名/公证流程：**填好下面的 GitHub Secrets 后，下次打 tag 即自动签名 + 公证**，不填则照常构建未签名包。
