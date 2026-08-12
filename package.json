@@ -1,6 +1,6 @@
 {
   "name": "maidong",
-  "version": "1.0.4",
+  "version": "1.0.0",
   "description": "麦冬云诊所 - 专业的中医诊所管理系统",
   "main": "main.js",
   "scripts": {
