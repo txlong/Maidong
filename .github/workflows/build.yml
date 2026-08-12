@@ -28,7 +28,7 @@ jobs:
           fi
 
   mac:
-    needs: release
+    needs: [release, gitee-prepare]
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v5
@@ -63,13 +63,21 @@ jobs:
       - run: npm run dist -- --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: 上传 DMG 到 Gitee Release（本地直传）
+        shell: bash
+        env:
+          GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
+          GITEE_OWNER: txlong
+          GITEE_REPO: maidong-destop
+          REL_ID: ${{ needs.gitee-prepare.outputs.rel_id }}
+        run: bash scripts/upload-assets-to-gitee.sh "dist/*.dmg"
       - uses: actions/upload-artifact@v6
         with:
           name: mac-dmg
           path: dist/*.dmg
 
   win:
-    needs: release
+    needs: [release, gitee-prepare]
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v5
@@ -94,10 +102,93 @@ jobs:
       - run: npm run dist -- --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: 上传 EXE 到 Gitee Release（本地直传）
+        shell: bash
+        env:
+          GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
+          GITEE_OWNER: txlong
+          GITEE_REPO: maidong-destop
+          REL_ID: ${{ needs.gitee-prepare.outputs.rel_id }}
+        run: bash scripts/upload-assets-to-gitee.sh "dist/*.exe"
       - uses: actions/upload-artifact@v6
         with:
           name: win-exe
           path: dist/*.exe
+
+  # 1.5) 准备 Gitee：推代码+tag、创建/复用 Gitee Release，输出 rel_id 供 mac/win 直接上传附件
+  #      （构建产物本地直传 Gitee，免去"从 GitHub Release 下载再上传"）
+  gitee-prepare:
+    needs: release
+    runs-on: ubuntu-latest
+    outputs:
+      rel_id: ${{ steps.prepare.outputs.rel_id }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: 准备 Gitee Release
+        id: prepare
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
+          GITEE_OWNER: txlong
+          GITEE_REPO: maidong-destop
+        run: |
+          set -euo pipefail
+          GITEE_API="https://gitee.com/api/v5"
+          TAG="${GITHUB_REF_NAME}"
+
+          # 未配置 token 时不阻塞构建，输出 SKIP 供上传步骤跳过
+          if [ -z "${GITEE_TOKEN:-}" ]; then
+            echo "⚠️ 未配置 GITEE_TOKEN，跳过 Gitee 同步（构建不受影响）"
+            echo "rel_id=SKIP" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # 读取 GitHub Release 元数据（草稿阶段也有 name/body/prerelease）
+          GH_RELEASE=$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}")
+          GH_NAME=$(echo "$GH_RELEASE" | jq -r '.name // .tag_name')
+          GH_BODY=$(echo "$GH_RELEASE" | jq -r '.body // ""')
+          GH_PRERELEASE=$(echo "$GH_RELEASE" | jq -r '.prerelease // false')
+          if [ -z "$GH_BODY" ] || [ "$GH_BODY" = "null" ]; then
+            GH_BODY="Release ${TAG}"
+          fi
+          DEFAULT_BRANCH=$(gh api "repos/${GITHUB_REPOSITORY}" --jq '.default_branch')
+          echo "==> GitHub Release 元数据: name=[${GH_NAME}] prerelease=[${GH_PRERELEASE}] branch=[${DEFAULT_BRANCH}]"
+
+          # 推送代码与 tag 到 Gitee（创建 Gitee Release 必须先有对应 tag）
+          REMOTE_URL="https://${GITEE_OWNER}:${GITEE_TOKEN}@gitee.com/${GITEE_OWNER}/${GITEE_REPO}.git"
+          git remote add gitee "$REMOTE_URL"
+          echo "==> 推送代码(${DEFAULT_BRANCH})与 tag ${TAG} 到 Gitee..."
+          git push gitee "HEAD:${DEFAULT_BRANCH}" --force
+          git push gitee "refs/tags/${TAG}" --force
+          git remote remove gitee
+
+          # 创建或复用 Gitee Release
+          REL_FILE="${RUNNER_TEMP}/gitee_rel.json"
+          code=$(curl -sS -o "$REL_FILE" -w "%{http_code}" \
+            "${GITEE_API}/repos/${GITEE_OWNER}/${GITEE_REPO}/releases/tags/${TAG}?access_token=${GITEE_TOKEN}")
+          if [ "$code" = "200" ] && jq -e '.id' "$REL_FILE" >/dev/null 2>&1; then
+            REL_ID=$(jq -r '.id' "$REL_FILE")
+            echo "==> Gitee Release 已存在 (id=${REL_ID})，复用"
+          else
+            echo "==> 创建 Gitee Release ${TAG}"
+            PAYLOAD=$(jq -n --arg access_token "$GITEE_TOKEN" --arg tag_name "$TAG" \
+              --arg name "$GH_NAME" --arg body "$GH_BODY" \
+              --argjson prerelease "$GH_PRERELEASE" --arg target_commitish "$DEFAULT_BRANCH" \
+              '{access_token:$access_token, tag_name:$tag_name, name:$name, body:$body, prerelease:$prerelease, target_commitish:$target_commitish}')
+            code=$(curl -sS -o "$REL_FILE" -w "%{http_code}" -X POST \
+              "${GITEE_API}/repos/${GITEE_OWNER}/${GITEE_REPO}/releases" \
+              -H 'Content-Type: application/json' -d "$PAYLOAD")
+            if [ "$code" -ge 400 ]; then
+              echo "❌ 创建 Gitee Release 失败 (HTTP ${code}): $(head -c 500 "$REL_FILE")"
+              exit 1
+            fi
+            REL_ID=$(jq -r '.id' "$REL_FILE")
+            echo "==> Gitee Release 创建成功 (id=${REL_ID})"
+          fi
+
+          echo "rel_id=${REL_ID}" >> "$GITHUB_OUTPUT"
 
   # 2) mac / win 都上传完成后，再把草稿 Release 转为正式发布
   publish:
